@@ -21,6 +21,7 @@ export function Topbar() {
     <header className="glass-light flex items-center justify-between gap-4 border-b border-border px-6 py-3.5">
       <input
         value={query}
+        aria-label="Search pumps, stations, and work orders"
         onChange={(e) => handleSearch(e.target.value)}
         placeholder="Search pumps, stations, work orders..."
         className="w-full max-w-[420px] rounded-squircle-sm border border-border bg-bg px-4 py-2.5 text-[13px] outline-none transition-shadow focus:border-teal focus:ring-2 focus:ring-teal/20"
@@ -28,6 +29,7 @@ export function Topbar() {
       <div className="flex shrink-0 items-center gap-4">
         <Link
           href="/alerts"
+          aria-label={`Active alerts${atRiskPumps.length > 0 ? ` (${atRiskPumps.length})` : ""}`}
           className="relative flex h-9 w-9 items-center justify-center rounded-full text-[16px] transition-colors hover:bg-black/[0.04]"
         >
           ⚠

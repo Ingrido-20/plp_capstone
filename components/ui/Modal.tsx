@@ -32,6 +32,9 @@ export function Modal({
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pump details"
         className={`animate-modal-in scroll-thin w-full ${widthClassName} max-h-[88vh] overflow-y-auto rounded-squircle-xl bg-surface p-7 shadow-elevated`}
       >
         {children}

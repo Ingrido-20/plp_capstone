@@ -76,6 +76,7 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={cx(
                     "mb-0.5 flex items-center justify-between rounded-squircle-sm px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
                     active ? "bg-teal font-bold text-white shadow-soft" : "text-[#c3d0de] hover:bg-white/[0.07] hover:text-white"
@@ -100,6 +101,7 @@ export function Sidebar() {
       <div className="border-t border-white/[0.06] p-3">
         <Link
           href="/settings"
+          aria-current={pathname === "/settings" ? "page" : undefined}
           className={cx(
             "flex items-center gap-2.5 rounded-squircle-sm px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
             pathname === "/settings" ? "bg-teal font-bold text-white shadow-soft" : "text-[#c3d0de] hover:bg-white/[0.07] hover:text-white"
