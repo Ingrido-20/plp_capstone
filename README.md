@@ -2,7 +2,7 @@
 
 Control room dashboard for the Flowgard pipeline predictive-maintenance prototype: live pump fleet risk, the Flowgard reconciliation engine (physics-referenced pressure residual), model performance, and maintenance workflows across 13 KPC pump stations (Mombasa to Kisumu).
 
-Built with Next.js (App Router), TypeScript, and Tailwind CSS.
+Built with Next.js 16 (App Router), React 19, TypeScript, and Tailwind CSS 4.
 
 ## Getting started
 
@@ -12,6 +12,14 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+For a production build:
+
+```bash
+npm run lint
+npm run build
+npm run start
+```
 
 ## Routes
 
