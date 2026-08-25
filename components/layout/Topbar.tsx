@@ -1,20 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { pumps } from "@/data/mockData";
+import { pumps, stations } from "@/data/mockData";
 import { atRiskPumps } from "@/lib/selectors";
 
 export function Topbar() {
   const { openPump } = useAppContext();
+  const router = useRouter();
   const [query, setQuery] = useState("");
 
   function handleSearch(value: string) {
     setQuery(value);
     if (value.trim().length < 2) return;
-    const hit = pumps.find((p) => p.pump_id.toLowerCase().includes(value.toLowerCase()));
-    if (hit) openPump(hit.pump_id);
+    const normalized = value.trim().toLowerCase();
+    const pumpHit = pumps.find((p) => p.pump_id.toLowerCase().includes(normalized));
+    if (pumpHit) {
+      openPump(pumpHit.pump_id);
+      return;
+    }
+
+    const stationHit = stations.find(
+      (station) => station.code.toLowerCase().includes(normalized) || station.name.toLowerCase().includes(normalized)
+    );
+    if (stationHit) router.push("/pumps?station=" + encodeURIComponent(stationHit.code));
   }
 
   return (
