@@ -43,6 +43,13 @@ function buildGroups(alertCount: number): NavGroup[] {
         { href: "/roi", label: "ROI & business case", icon: "▲" },
       ],
     },
+    {
+      label: "System & Auth",
+      items: [
+        { href: "/login", label: "Sign in / Auth", icon: "🔑" },
+        { href: "/settings", label: "System settings", icon: "⚙" },
+      ],
+    },
   ];
 }
 
@@ -97,19 +104,6 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
-
-      <div className="border-t border-white/[0.06] p-3">
-        <Link
-          href="/settings"
-          aria-current={pathname === "/settings" ? "page" : undefined}
-          className={cx(
-            "flex items-center gap-2.5 rounded-squircle-sm px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
-            pathname === "/settings" ? "bg-teal font-bold text-white shadow-soft" : "text-[#c3d0de] hover:bg-white/[0.07] hover:text-white"
-          )}
-        >
-          <span aria-hidden>⚙</span> Settings
-        </Link>
-      </div>
     </aside>
   );
 }
