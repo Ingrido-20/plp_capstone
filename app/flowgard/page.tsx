@@ -50,7 +50,7 @@ export default function FlowgardPage() {
       <div>
         <h1 className="text-[24px] font-extrabold tracking-tight">Flowgard Hydraulic Reconciliation Engine</h1>
         <p className="mt-1 text-[13px] text-text-mute">
-          Physics-referenced pressure residual calculation ($P_{\text{actual}} - P_{\text{simulated}}$) for isolating mechanical equipment wear from hydraulic pipeline transients.
+          Physics-referenced pressure residual calculation (P_actual - P_simulated) for isolating mechanical equipment wear from hydraulic pipeline transients.
         </p>
       </div>
 

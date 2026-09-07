@@ -74,7 +74,7 @@ export default function RoiPage() {
               <span>💧</span> Standard Orifice Fluid Leak Loss Calculator
             </h3>
             <p className="text-xs text-text-mute">
-              Physics formula: $Q = C_d \cdot A \cdot \sqrt{\frac{2\Delta P}{\rho}}$ (ISO 5167 Orifice Hydraulic Model)
+              Physics formula: Q = Cd × A × √(2ΔP / ρ) (ISO 5167 Orifice Hydraulic Model)
             </p>
           </div>
           <div className="flex items-center gap-2">
