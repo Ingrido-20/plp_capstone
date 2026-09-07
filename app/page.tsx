@@ -1,207 +1,318 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import { useAppContext } from "@/context/AppContext";
-import { stations, pumps, modelMetrics } from "@/data/mockData";
-import { atRiskPumps, criticalPumps } from "@/lib/selectors";
-import { Card } from "@/components/ui/Card";
-import { RiskBadge } from "@/components/ui/Badge";
-import { NetworkSvg } from "@/components/dashboard/NetworkSvg";
-import { days, pct, riskWord, sortByRiskDesc, stationName } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useScada } from "@/context/ScadaContext";
 
-const statTiles = [
-  {
-    icon: "⚠",
-    iconBg: "bg-red-light",
-    label: "Pumps at critical risk",
-    value: criticalPumps.length,
-    trend: "Requires action this week",
-    trendClass: "text-red",
-  },
-  {
-    icon: "◐",
-    iconBg: "bg-amber-light",
-    label: "Pumps on watch",
-    value: atRiskPumps.length - criticalPumps.length,
-    trend: "Monitor, no action yet",
-    trendClass: "text-text-mute",
-  },
-  {
-    icon: "✓",
-    iconBg: "bg-green-light",
-    label: "Healthy pumps",
-    value: pumps.length - atRiskPumps.length,
-    trend: "Operating normally",
-    trendClass: "text-green",
-  },
-];
+export default function LandingPage() {
+  const router = useRouter();
+  const { login, isAuthenticated, user } = useAuth();
+  const { companyInfo } = useScada();
 
-export default function DashboardPage() {
-  const { openPump } = useAppContext();
-  const earliestFailure = atRiskPumps.filter((p) => p.rul_hours !== null);
-  const earliestDays = earliestFailure.length
-    ? days(Math.min(...earliestFailure.map((p) => p.rul_hours!)))
-    : null;
-  const highestRisk = sortByRiskDesc(pumps).slice(0, 6);
-  const falseAlarmRate =
-    modelMetrics.confusion_matrix[0][1] / (modelMetrics.confusion_matrix[0][0] + modelMetrics.confusion_matrix[0][1]);
+  const [email, setEmail] = useState<string>("planner@kpc.co.ke");
+  const [password, setPassword] = useState<string>("Password123!");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<boolean>(false);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setAuthError(null);
+
+    try {
+      const success = await login(email, password);
+      if (success) {
+        setAuthSuccess(true);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+      } else {
+        setAuthError("Invalid credentials or unauthorized user role.");
+      }
+    } catch {
+      setAuthError("Authentication server error. Entering demo mode...");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1200);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="animate-fade-in-up">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[24px] font-extrabold tracking-tight">Control room</h1>
-          <p className="mt-1 text-[13px] text-text-mute">
-            Fleet status across {stations.length} stations, {pumps.length} pumps — Mombasa to Kisumu.
-          </p>
-        </div>
-        <div className="rounded-squircle-sm border border-border bg-surface px-3.5 py-2 text-[12.5px] font-semibold text-text-mute shadow-soft">
-          Last model run: today 06:00 ▾
-        </div>
+    <div className="min-h-screen bg-[#070B15] text-slate-100 -m-6 p-6 sm:p-10 font-sans selection:bg-teal-500 selection:text-black">
+      {/* Background Decorative Radial Glowing Blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-teal-500/15 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-40 left-1/3 w-[450px] h-[450px] bg-purple-600/10 rounded-full blur-[130px]" />
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        {statTiles.map((tile) => (
-          <Card key={tile.label} className="flex items-start gap-3">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-squircle-sm text-[17px] ${tile.iconBg}`}>
-              {tile.icon}
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col gap-16">
+        {/* Navigation Bar Header */}
+        <header className="flex items-center justify-between py-4 border-b border-slate-800/80">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-blue-600 text-lg font-bold text-slate-950 shadow-lg shadow-teal-500/20">
+              ◈
             </div>
             <div>
-              <div className="text-[11.5px] font-semibold text-text-mute">{tile.label}</div>
-              <div className="text-[23px] font-extrabold leading-tight">{tile.value}</div>
-              <div className={`text-[11px] font-semibold ${tile.trendClass}`}>{tile.trend}</div>
+              <span className="text-lg font-extrabold tracking-wider text-white">FLOWGUARD AI</span>
+              <span className="ml-2.5 text-[10px] uppercase font-bold tracking-widest bg-teal-500/10 text-teal-400 border border-teal-500/30 px-2 py-0.5 rounded-full">
+                KPC Enterprise
+              </span>
             </div>
-          </Card>
-        ))}
-        <Card className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-squircle-sm bg-teal-light text-[17px]">
-            ◈
           </div>
-          <div>
-            <div className="text-[11.5px] font-semibold text-text-mute">Earliest predicted failure</div>
-            <div className="text-[23px] font-extrabold leading-tight">{earliestDays ? `${earliestDays}d` : "—"}</div>
-            <div className="text-[11px] font-semibold text-text-mute">Lead time to act</div>
-          </div>
-        </Card>
-      </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[14.5px] font-extrabold">Pipeline network status</h3>
-            <Link href="/network" className="text-[13px] font-semibold text-teal hover:underline">
-              Open network view →
-            </Link>
-          </div>
-          <NetworkSvg width={700} height={120} />
-          <div className="mt-2 flex gap-4 text-[11px] text-text-mute">
-            <span className="text-red">● Critical</span>
-            <span className="text-amber">● Watch</span>
-            <span className="text-green">● Healthy</span>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[14.5px] font-extrabold">Priority actions</h3>
-            <Link href="/alerts" className="text-[13px] font-semibold text-teal hover:underline">
-              All alerts →
-            </Link>
-          </div>
-          <div className="space-y-3.5">
-            {atRiskPumps.slice(0, 4).map((p) => (
+          <div className="flex items-center gap-4 text-xs font-semibold text-slate-300">
+            <span className="hidden md:inline-block text-slate-400">Team NULL_TERMINATORS • PLP Cohort</span>
+            {isAuthenticated ? (
               <button
-                key={p.pump_id}
-                onClick={() => openPump(p.pump_id)}
-                className="flex w-full items-start gap-3 text-left transition-opacity hover:opacity-70"
+                onClick={() => router.push("/dashboard")}
+                className="px-4 py-2 rounded-lg bg-teal-500 text-slate-950 font-bold hover:bg-teal-400 transition shadow-lg shadow-teal-500/20"
               >
-                <div
-                  className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-squircle-sm text-[13px] ${
-                    p.risk_probability > 0.5 ? "bg-red-light" : "bg-amber-light"
-                  }`}
-                >
-                  ⚙
-                </div>
-                <div>
-                  <div className="text-[12.5px] font-bold">
-                    {p.pump_id} — {riskWord(p.risk_probability)}
-                  </div>
-                  <div className="text-[11px] text-text-mute">
-                    {stationName(p.station_code)}
-                    {p.rul_hours !== null ? ` · ${days(p.rul_hours)} days remaining` : ""}
-                  </div>
-                </div>
+                Go to Control Room ({user?.name}) →
               </button>
-            ))}
+            ) : (
+              <a
+                href="#login-card"
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition"
+              >
+                System Login ↓
+              </a>
+            )}
           </div>
-        </Card>
-      </div>
+        </header>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card padded={false}>
-          <div className="flex items-center justify-between p-5 pb-3">
-            <h3 className="text-[14.5px] font-extrabold">Highest-risk pumps</h3>
-            <Link href="/pumps" className="text-[13px] font-semibold text-teal hover:underline">
-              Full fleet →
-            </Link>
-          </div>
-          <div className="overflow-x-auto px-5 pb-5">
-            <table className="w-full border-collapse text-[12.5px]">
-              <thead>
-                <tr>
-                  {["Pump", "Station", "Risk", "RUL", "Status"].map((h) => (
-                    <th key={h} className="border-b border-border px-1.5 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-text-mute">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {highestRisk.map((p) => (
-                  <tr
-                    key={p.pump_id}
-                    onClick={() => openPump(p.pump_id)}
-                    className="cursor-pointer transition-colors hover:bg-bg"
-                  >
-                    <td className="border-b border-black/[0.04] px-1.5 py-2.5 font-bold">{p.pump_id}</td>
-                    <td className="border-b border-black/[0.04] px-1.5 py-2.5">{stationName(p.station_code)}</td>
-                    <td className="border-b border-black/[0.04] px-1.5 py-2.5">{pct(p.risk_probability)}</td>
-                    <td className="border-b border-black/[0.04] px-1.5 py-2.5">
-                      {p.rul_hours !== null ? `${days(p.rul_hours)}d` : "—"}
-                    </td>
-                    <td className="border-b border-black/[0.04] px-1.5 py-2.5">
-                      <RiskBadge risk={p.risk_probability} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[14.5px] font-extrabold">Model confidence</h3>
-            <Link href="/model" className="text-[13px] font-semibold text-teal hover:underline">
-              Full report →
-            </Link>
-          </div>
-          {[
-            ["Classification accuracy", pct(modelMetrics.classification_accuracy)],
-            ["Failure-catch sensitivity", pct(modelMetrics.classification_sensitivity)],
-            ["RUL mean absolute error", `${modelMetrics.rul_mae_hours} hours`],
-            ["False alarm rate", pct(falseAlarmRate)],
-          ].map(([k, v]) => (
-            <div key={k} className="flex justify-between border-b border-black/[0.05] py-2 text-[12.5px] last:border-0">
-              <span className="text-text-mute">{k}</span>
-              <span className="font-bold">{v}</span>
+        {/* HERO SECTION WITH FLOATING LOGIN CARD */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-4">
+          {/* Left Column: Hero Content & System Overview */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-medium text-teal-400 w-fit backdrop-blur">
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+              ISO 9241 HCI Standard Industrial Control Engine
             </div>
-          ))}
-          <div className="mt-3.5 rounded-squircle bg-teal-light p-3.5 text-[11.5px] text-[#0E6B63]">
-            Flowgard&apos;s health deviation index is the strongest single predictor in the model — confirmed by SHAP
-            across every flagged pump.
+
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.15]">
+              Condition-Based <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-blue-500 bg-clip-text text-transparent">Predictive Maintenance</span> & Reconciliation
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              Operating across Kenya Pipeline Company&apos;s <strong>1,342 km network</strong> (connecting Mombasa, Mtito Andei, Sultan Hamud, Nairobi, Nakuru, and Kisumu), FlowGuard AI replaces fixed-interval maintenance with physics-referenced pressure residuals and 7-day machine learning risk predictions.
+            </p>
+
+            {/* Key Metrics Ticker */}
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 backdrop-blur">
+                <div className="text-xl sm:text-2xl font-extrabold text-white">1.34B L</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Annual Flow Volume</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 backdrop-blur">
+                <div className="text-xl sm:text-2xl font-extrabold text-teal-400">94.2%</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">ML Model Accuracy</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 backdrop-blur">
+                <div className="text-xl sm:text-2xl font-extrabold text-amber-400">4.2 Days</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Advance Warning Lead</div>
+              </div>
+            </div>
           </div>
-        </Card>
+
+          {/* Right Column: FLOATING INTERACTIVE GLASSMORPHISM LOGIN CARD */}
+          <div id="login-card" className="lg:col-span-5 relative">
+            {/* Glowing Accent Border Container */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-blue-600 rounded-3xl blur-xl opacity-40 animate-pulse" />
+
+            <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-7 text-slate-100 shadow-2xl flex flex-col gap-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="text-teal-400">🔑</span> System Access Portal
+                  </h2>
+                  <p className="text-xs text-slate-400">Enter KPC credentials to unlock Control Room</p>
+                </div>
+                <span className="text-[10px] font-mono bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-700">
+                  FastAPI Auth
+                </span>
+              </div>
+
+              {/* Error Alert */}
+              {authError && (
+                <div className="p-3 rounded-lg bg-amber-950/80 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              {/* Success Alert */}
+              {authSuccess && (
+                <div className="p-3 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs flex items-center gap-2">
+                  <span>✅</span>
+                  <span>Credentials validated! Redirecting to Control Room...</span>
+                </div>
+              )}
+
+              {/* Login Form */}
+              <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    Engineer / Operator Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="planner@kpc.co.ke"
+                    className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-teal-400 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-teal-400 transition"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="mt-1 w-full py-3 rounded-lg bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Validating Backend Token...</span>
+                    </>
+                  ) : (
+                    <span>Authenticate & Access System →</span>
+                  )}
+                </button>
+              </form>
+
+              {/* Quick Demo Fill Buttons */}
+              <div className="pt-3 border-t border-slate-800/80 flex flex-col gap-2">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center">
+                  Quick Backend Test Credentials
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("planner@kpc.co.ke");
+                      setPassword("Password123!");
+                    }}
+                    className="p-2 rounded bg-slate-950 border border-slate-800 hover:border-teal-500/50 text-slate-300 text-left font-mono transition"
+                  >
+                    <div className="text-teal-400 font-bold">KPC Planner</div>
+                    <div className="text-[9.5px] opacity-70">planner@kpc.co.ke</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("operator@kpc.co.ke");
+                      setPassword("Password123!");
+                    }}
+                    className="p-2 rounded bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-slate-300 text-left font-mono transition"
+                  >
+                    <div className="text-amber-400 font-bold">KPC Operator</div>
+                    <div className="text-[9.5px] opacity-70">operator@kpc.co.ke</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SYSTEM CAPABILITY MODULE CARDS */}
+        <section className="flex flex-col gap-6 pt-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-2xl font-extrabold text-white">System Capabilities & Core Modules</h2>
+            <p className="text-xs text-slate-400">Integrated predictive maintenance workflow across 13 KPC booster pump stations</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: 3D Pump Visualizer */}
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/50 transition flex flex-col justify-between gap-4">
+              <div>
+                <div className="text-2xl mb-2">🔍</div>
+                <h3 className="text-sm font-bold text-white">3D WebGL Centrifugal Pump Inspector</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Interactive Three.js WebGL centrifugal pump assembly with raycasting listener, component breakdown & glowing crimson bearing fault state.
+                </p>
+              </div>
+              <Link href="/pumps" className="text-xs font-bold text-teal-400 hover:underline">
+                Explore 3D Inspector →
+              </Link>
+            </div>
+
+            {/* Card 2: Flowgard Hydraulic Engine */}
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/50 transition flex flex-col justify-between gap-4">
+              <div>
+                <div className="text-2xl mb-2">📈</div>
+                <h3 className="text-sm font-bold text-white">Flowgard Reconciliation Engine</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Physics pressure residual calculation (P_actual - P_simulated) and 4 synthetic fault injectors (Bearing friction, Cavitation, Leak precursor).
+                </p>
+              </div>
+              <Link href="/flowgard" className="text-xs font-bold text-teal-400 hover:underline">
+                Open Engine & Faults →
+              </Link>
+            </div>
+
+            {/* Card 3: Orifice Leak Calculator */}
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/50 transition flex flex-col justify-between gap-4">
+              <div>
+                <div className="text-2xl mb-2">💧</div>
+                <h3 className="text-sm font-bold text-white">Orifice Leak & Financial ROI</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  ISO 5167 orifice leak formula Q = Cd × A × √(2ΔP/ρ) calculating hourly/annual monetary revenue loss across Diesel, Petrol, Jet A-1 & Crude.
+                </p>
+              </div>
+              <Link href="/roi" className="text-xs font-bold text-teal-400 hover:underline">
+                Calculate Leak ROI →
+              </Link>
+            </div>
+
+            {/* Card 4: Command Center */}
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/50 transition flex flex-col justify-between gap-4">
+              <div>
+                <div className="text-2xl mb-2">🚨</div>
+                <h3 className="text-sm font-bold text-white">Emergency Command Center</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Web Audio API 880Hz emergency alarm sound synthesizer, station trip isolation switch, and severity-coded alert notification feed.
+                </p>
+              </div>
+              <Link href="/alerts" className="text-xs font-bold text-teal-400 hover:underline">
+                View Command Feed →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* FOOTER */}
+        <footer className="py-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div>
+            © 2026 FlowGuard AI • Developed by Team <strong>NULL_TERMINATORS</strong> (KPC Cohort, Inuka Fellowship).
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="hover:text-white transition">Control Room</Link>
+            <Link href="/pumps" className="hover:text-white transition">Pump Fleet</Link>
+            <Link href="/flowgard" className="hover:text-white transition">Hydraulic Engine</Link>
+            <Link href="/roi" className="hover:text-white transition">Financial ROI</Link>
+          </div>
+        </footer>
       </div>
     </div>
   );
